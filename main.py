@@ -5,6 +5,8 @@ from model import Weather
 from datetime import datetime
 import time
 
+from sqlalchemy import select
+
 
 method = time.time()
 check_interval = 5
@@ -27,12 +29,18 @@ try:
 
             print(f"{str(timestamp)}   temp {temp_acc}    wind{wind}")
 
-            live_weather = Weather(timestamp=str(timestamp),
-                                   temperature=temp_acc,
-                                   wind_str=wind['speed'],
-                                   wind_dir=wind['deg'])
-            session.add(live_weather)
-            session.commit()
+            stmt = select(Weather).where(Weather.timestamp == str(timestamp))
+            results = session.execute(stmt)
+            result = results.fetchone()
+
+            if result is None:
+                live_weather = Weather(timestamp=str(timestamp),
+                                       temperature=temp_acc,
+                                       wind_str=wind['speed'],
+                                       wind_dir=wind['deg'])
+                session.add(live_weather)
+                session.commit()
+
             last_check = time.time()
 except KeyboardInterrupt:
     pass

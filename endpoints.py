@@ -1,5 +1,4 @@
 import requests
-import random
 import os
 
 
@@ -11,15 +10,15 @@ class OpenWeatherMapService():
         self.API_TOKEN = os.environ.get("WEATHER_API_KEY", "")
 
     def call_OWM_forecast_api(self):
-        endpoint = self.endpoint_forecast.format(self.location["lat"], self.location["lon"], self.API_TOKEN)
+        endpoint = self.endpoint_forecast.format(
+            self.location["lat"], self.location["lon"], self.API_TOKEN)
         response = requests.get(endpoint)
         response.raise_for_status()
         return response.json()
 
     def call_OWM_life_data_api(self):
-        endpoint = self.endpoint_life_data.format(self.location["lat"], self.location["lon"], self.API_TOKEN)
+        endpoint = self.endpoint_life_data.format(
+            self.location["lat"], self.location["lon"], self.API_TOKEN)
         response = requests.get(endpoint)
         response.raise_for_status()
         return response.json()
-
-

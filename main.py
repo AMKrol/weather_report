@@ -41,6 +41,15 @@ try:
                 session.add(live_weather)
                 session.commit()
 
+            forecast_data = api_client.call_OWM_forecast_api()
+            print('forecast')
+            for day in forecast_data['list']:
+                temp_acc = day['main']['temp']
+                wind = day['wind']
+                timestamp = datetime.fromtimestamp(day['dt'])
+
+                print(f"{str(timestamp)}   temp {temp_acc}    wind{wind}")
+
             last_check = time.time()
 except KeyboardInterrupt:
     pass

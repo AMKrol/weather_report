@@ -87,34 +87,38 @@ try:
             figure.autofmt_xdate()
             ax.clear()
             ax2.clear()
-            ax.plot(dates[:len(plot_hist_temp)], plot_hist_temp,
-                    color='r',
-                    label='Historical temperature')
+            lns1 = ax.plot(dates[:len(plot_hist_temp)],
+                           plot_hist_temp,
+                           color='r',
+                           label='Historical temperature')
 
-            ax.plot(dates[-len(plot_forecast_temp)-1:],
-                    [plot_hist_temp[-1]] + plot_forecast_temp,
-                    color='b',
-                    label='Forecast temperature')
+            lns2 = ax.plot(dates[-len(plot_forecast_temp)-1:],
+                           [plot_hist_temp[-1]] + plot_forecast_temp,
+                           color='b',
+                           label='Forecast temperature')
 
             ax.set_xlim([dates[0]-1, dates[-1]+1])
             ax.set_ylim([min(plot_hist_temp + plot_forecast_temp)-1,
                         max(plot_hist_temp + plot_forecast_temp)+1])
 
-            ax2.plot(dates[:len(plot_hist_wind_str)], plot_hist_wind_str,
-                     color='y',
-                     label='Historical wind speed')
+            lns3 = ax2.plot(dates[:len(plot_hist_wind_str)],
+                            plot_hist_wind_str,
+                            color='y',
+                            label='Historical wind speed')
 
-            ax2.plot(dates[-len(plot_forecast_wind_str)-1:],
-                     [plot_hist_wind_str[-1]] + plot_forecast_wind_str,
-                     color='g',
-                     label='Forecast wind speed')
+            lns4 = ax2.plot(dates[-len(plot_forecast_wind_str)-1:],
+                            [plot_hist_wind_str[-1]] + plot_forecast_wind_str,
+                            color='g',
+                            label='Forecast wind speed')
 
             ax.set_title("Weather report for K2")
             ax.set_xlabel('Date')
             ax.set_ylabel('Temperature [C]')
             ax2.set_ylabel('Wind speed [m/s]')
-            ax.legend()
-            ax2.legend()
+
+            lns = lns1+lns2+lns3+lns4
+            labs = [x.get_label() for x in lns]
+            ax.legend(lns, labs, loc=0)
             figure.canvas.draw()
             x_labels = ax.get_xticks()
             ax.xaxis.set_major_formatter(

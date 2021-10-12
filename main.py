@@ -22,9 +22,7 @@ session = Session()
 
 plt.ion()
 figure, ax = plt.subplots(figsize=(10, 8))
-plt.title("Weather report for", fontsize=20)
-plt.xlabel("Date")
-plt.ylabel("Y-axis")
+ax2 = ax.twinx()
 
 try:
     while True:
@@ -88,6 +86,7 @@ try:
                 mdates.DateFormatter("%Y-%m-%d %H:%M"))
             figure.autofmt_xdate()
             ax.clear()
+            ax2.clear()
             ax.plot(dates[:len(plot_hist_temp)], plot_hist_temp,
                     color='r',
                     label='Historical temperature')
@@ -101,7 +100,21 @@ try:
             ax.set_ylim([min(plot_hist_temp + plot_forecast_temp)-1,
                         max(plot_hist_temp + plot_forecast_temp)+1])
 
+            ax2.plot(dates[:len(plot_hist_wind_str)], plot_hist_wind_str,
+                     color='y',
+                     label='Historical wind speed')
+
+            ax2.plot(dates[-len(plot_forecast_wind_str)-1:],
+                     [plot_hist_wind_str[-1]] + plot_forecast_wind_str,
+                     color='g',
+                     label='Forecast wind speed')
+
+            ax.set_title("Weather report for K2")
+            ax.set_xlabel('Date')
+            ax.set_ylabel('Temperature [C]')
+            ax2.set_ylabel('Wind speed [m/s]')
             ax.legend()
+            ax2.legend()
             figure.canvas.draw()
             x_labels = ax.get_xticks()
             ax.xaxis.set_major_formatter(

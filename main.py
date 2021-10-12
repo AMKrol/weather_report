@@ -3,6 +3,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from model import Weather
 from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import time
 
 from sqlalchemy import select
@@ -18,10 +20,16 @@ engine = create_engine('sqlite:///sqlite.db')
 Session = sessionmaker(bind=engine)
 session = Session()
 
+plt.ion()
+figure, ax = plt.subplots(figsize=(10, 8))
+plt.title("Weather report for", fontsize=20)
+plt.xlabel("Date")
+plt.ylabel("Y-axis")
 
 try:
     while True:
         if int(time.time() - last_check) > check_interval:
+            # Get actual data
             data = api_client.call_OWM_life_data_api()
             temp_acc = data['main']['temp']
             wind = data['wind']
@@ -29,6 +37,7 @@ try:
 
             print(f"{str(timestamp)}   temp {temp_acc}    wind{wind}")
 
+            # If timestamp exist in DB don't add to DB
             stmt = select(Weather).where(Weather.timestamp == str(timestamp))
             results = session.execute(stmt)
             result = results.fetchone()
@@ -41,6 +50,7 @@ try:
                 session.add(live_weather)
                 session.commit()
 
+            # Get forecast
             forecast_data = api_client.call_OWM_forecast_api()
 
             plot_forecast_time = []
@@ -50,8 +60,10 @@ try:
             for day in forecast_data['list']:
                 plot_forecast_temp.append(day['main']['temp'])
                 plot_forecast_wind_str.append(day['wind']['speed'])
-                plot_forecast_time.append(datetime.fromtimestamp(day['dt']))
+                plot_forecast_time.append(
+                    str(datetime.fromtimestamp(day['dt'])))
 
+            # Get data from DB form last 24h
             start_date = datetime.fromtimestamp(time.time())
             date_1 = datetime.strptime(str(start_date), "%Y-%m-%d %H:%M:%S.%f")
             end_date = date_1 - timedelta(days=1)
@@ -63,6 +75,39 @@ try:
             plot_hist_time = [res[0].timestamp for res in result]
             plot_hist_temp = [res[0].temperature for res in result]
             plot_hist_wind_str = [res[0].wind_str for res in result]
+
+            # Prepare data for ploting
+            x_date = plot_hist_time + plot_forecast_time
+            x_values = [datetime.strptime(
+                str(d), "%Y-%m-%d %H:%M:%S") for d in x_date]
+            dates = mdates.date2num(x_values)
+
+            # Ploting data
+            x_labels = ax.get_xticks()
+            ax.xaxis.set_major_formatter(
+                mdates.DateFormatter("%Y-%m-%d %H:%M"))
+            figure.autofmt_xdate()
+            ax.clear()
+            ax.plot(dates[:len(plot_hist_temp)], plot_hist_temp,
+                    color='r',
+                    label='Historical temperature')
+
+            ax.plot(dates[-len(plot_forecast_temp)-1:],
+                    [plot_hist_temp[-1]] + plot_forecast_temp,
+                    color='b',
+                    label='Forecast temperature')
+
+            ax.set_xlim([dates[0]-1, dates[-1]+1])
+            ax.set_ylim([min(plot_hist_temp + plot_forecast_temp)-1,
+                        max(plot_hist_temp + plot_forecast_temp)+1])
+
+            ax.legend()
+            figure.canvas.draw()
+            x_labels = ax.get_xticks()
+            ax.xaxis.set_major_formatter(
+                mdates.DateFormatter("%Y-%m-%d %H:%M"))
+            figure.autofmt_xdate()
+            figure.canvas.flush_events()
 
             last_check = time.time()
 except KeyboardInterrupt:

@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import time
+import statistics
 
 from sqlalchemy import select
 
@@ -80,6 +81,15 @@ try:
                 str(d), "%Y-%m-%d %H:%M:%S") for d in x_date]
             dates = mdates.date2num(x_values)
 
+            stmt = select(Weather.temperature)
+            results = session.execute(stmt)
+            result = results.all()
+            hist_temp_all = [r[0] for r in result]
+
+            hist_temp_min = min(hist_temp_all)
+            hist_temp_max = max(hist_temp_all)
+            hist_temp_avg = statistics.mean(hist_temp_all)
+
             # Ploting data
             x_labels = ax.get_xticks()
             ax.xaxis.set_major_formatter(
@@ -115,6 +125,16 @@ try:
             ax.set_xlabel('Date')
             ax.set_ylabel('Temperature [C]')
             ax2.set_ylabel('Wind speed [m/s]')
+
+            textstr = '\n'.join((
+                'Min temperature in past=%.2fC' % (hist_temp_min, ),
+                'Max temperature in past=%.2fC' % (hist_temp_max, ),
+                'Avg temperature in past=%.2fC' % (hist_temp_avg, )))
+
+            props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+
+            ax.text(0.6, 0.15, textstr, transform=ax.transAxes, fontsize=14,
+                    verticalalignment='top', bbox=props)
 
             lns = lns1+lns2+lns3+lns4
             labs = [x.get_label() for x in lns]

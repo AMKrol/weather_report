@@ -17,7 +17,7 @@ All instruction will be writen fo Debian system.
 ##### Clone of repository.
 
 ```sh
-git clone https://github.com/Thagord/weather_report.git
+git clone https://github.com/AMKrol/weather_report.git
 ```
 
 ##### Creation and activating of virtual environment for Python.
